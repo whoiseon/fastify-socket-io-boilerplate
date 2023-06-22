@@ -4,6 +4,7 @@ import fastify, { FastifyInstance } from 'fastify';
 import RoutesController from './routes/routes.controller';
 import fastifySocketIO from 'fastify-socket.io';
 import SocketServer from './socket';
+import 'dotenv/config';
 
 class Server {
   private app: FastifyInstance;

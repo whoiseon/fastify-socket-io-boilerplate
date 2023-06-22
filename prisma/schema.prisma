@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int   @id @default(autoincrement())
+  name      String   @unique
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Room과 다대다 관계
+  rooms     Room[]
+  // Chat과 일대다 관계
+  messages  ChatMessage[]
+  // Token과 일대다 관계
+  tokens    Token[]
+
+  @@index([username])
+}
+
+model Token {
+  id              Int      @id @default(autoincrement())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          Int
+  rotationCounter Int      @default(1)
+  createdAt       DateTime @default(now())
+  blocked         Boolean  @default(false)
+}
+
+model Room {
+  id        Int   @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // User와 다대다 관계
+  users     User[]
+  // Chat과 일대다 관계
+  messages     ChatMessage[]
+}
+
+model ChatMessage {
+  id        Int   @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // User와 다대일 관계
+  user      User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int?
+
+  // Room과 다대일 관계
+  room      Room?   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId    Int?
+
+  @@index([userId])
+  @@index([roomId])
+}
