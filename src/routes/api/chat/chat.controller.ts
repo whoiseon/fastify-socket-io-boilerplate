@@ -11,7 +11,7 @@ export default class ChatController {
   public privateRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.register(plugins.requireAuthPlugin);
 
-    fastify.post('/private/message/send', async (request: AppRequest) => {
+    fastify.post('/private/message', async (request: AppRequest) => {
       const { id: userId } = request.user!;
       const { roomCode, content } = request.body as {
         roomCode: string;
