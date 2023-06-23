@@ -8,6 +8,7 @@ import {
   UserResult,
 } from './auth.types';
 import { setTokenCookie } from '../../../lib/cookies';
+import { AppRequest } from '../../../lib/types';
 
 export default class AuthController {
   private authService = new AuthService();
@@ -15,14 +16,14 @@ export default class AuthController {
   constructor() {}
 
   public routes: FastifyPluginAsync = async (fastify) => {
-    fastify.post('/signup', async (request, reply) => {
+    fastify.post('/signup', async (request: AppRequest, reply) => {
       const authResult = await this.authService.signup(
         request.body as SignUpParams,
       );
       return authResult;
     });
 
-    fastify.post('/signin', async (request, reply) => {
+    fastify.post('/signin', async (request: AppRequest, reply) => {
       const authResult: AuthResult = await this.authService.signin(
         request.body as SignInParams,
       );
@@ -30,12 +31,11 @@ export default class AuthController {
       return authResult;
     });
 
-    fastify.post('/signout', async (request, reply) => {
+    fastify.post('/signout', async (request: AppRequest, reply) => {
       this.authService.signout(reply);
     });
 
-    fastify.post('/refresh', async (request, reply) => {
-      console.log(request.cookies.refreshToken);
+    fastify.post('/refresh', async (request: AppRequest, reply) => {
       const refreshToken =
         (request.body as RefreshBody).refreshToken ??
         request.cookies.refresh_token ??

@@ -9,6 +9,7 @@ import {
 } from '../../../lib/tokens';
 import { FastifyReply } from 'fastify';
 import { clearTokenCookie } from '../../../lib/cookies';
+import AppError, { isAppError } from '../../../lib/AppError';
 
 export default class AuthService {
   private SALT_ROUNDS = 10;
@@ -16,7 +17,7 @@ export default class AuthService {
   constructor() {}
 
   public signup = async ({
-    name,
+    nickname,
     username,
     password,
   }: SignUpParams): Promise<{ user: User }> => {
@@ -27,14 +28,14 @@ export default class AuthService {
     });
 
     if (exists) {
-      throw new Error('Username already exists');
+      throw new AppError('AlreadyExists');
     }
 
     const passwordHash = await bcrypt.hash(password, this.SALT_ROUNDS);
 
     const signUpUser = await db.user.create({
       data: {
-        name,
+        nickname,
         username,
         password: passwordHash,
       },
@@ -49,30 +50,35 @@ export default class AuthService {
     username,
     password,
   }: SignInParams): Promise<AuthResult> => {
-    const findUser = await db.user.findUnique({
+    const user = await db.user.findUnique({
       where: {
         username,
       },
     });
 
-    if (!findUser) {
-      throw new Error('User not found');
+    if (!user) {
+      throw new AppError('WrongCredentials');
     }
 
     try {
-      const result = await bcrypt.compare(password, findUser.password);
+      const result = await bcrypt.compare(password, user.password);
       if (!result) {
-        throw new Error('WrongCredentials');
+        throw new AppError('WrongCredentials');
       }
     } catch (e) {
-      throw new Error('Unknown');
+      if (isAppError(e)) {
+        throw e;
+      }
+      throw new AppError('Unknown');
     }
 
-    const { password: passwordHash, ...user } = findUser;
-
-    const tokens = await this.generateTokens(findUser);
+    const tokens = await this.generateTokens(user);
     return {
-      user,
+      user: {
+        id: user.id,
+        nickname: user.nickname,
+        username: user.username,
+      },
       tokens,
     };
   };
@@ -130,12 +136,12 @@ export default class AuthService {
 
       return this.generateTokens(tokenItem.user, tokenItem);
     } catch (e) {
-      throw new Error('InvalidToken');
+      throw new AppError('RefreshFailure');
     }
   };
 
   public generateTokens = async (user: User, tokenItem?: Token) => {
-    const { id: userId, name, username } = user;
+    const { id: userId, nickname, username } = user;
     const token = tokenItem ?? (await this.createTokenItem(userId));
     const tokenId = token.id;
 
@@ -145,7 +151,7 @@ export default class AuthService {
         userId,
         username,
         tokenId,
-        name,
+        nickname,
       }),
       generateToken({
         type: 'refresh_token',

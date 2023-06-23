@@ -5,6 +5,8 @@ import RoutesController from './routes/routes.controller';
 import fastifySocketIO from 'fastify-socket.io';
 import SocketServer from './socket';
 import 'dotenv/config';
+import { isAppError } from './lib/AppError';
+import plugins from './plugins';
 
 class Server {
   private app: FastifyInstance;
@@ -36,6 +38,29 @@ class Server {
 
     // socket.io 설정
     this.app.register(fastifySocketIO);
+
+    // Error Handler 설정
+    this.app.setErrorHandler(async (error, request, reply) => {
+      reply.statusCode = error.statusCode ?? 500;
+      if (isAppError(error)) {
+        return {
+          name: error.name,
+          message: error.message,
+          statusCode: error.statusCode,
+          payload: error.payload,
+        };
+      }
+
+      if (error.statusCode === 400) {
+        return {
+          name: 'BadRequest',
+          message: error.message,
+          statusCode: 400,
+        };
+      }
+
+      return error;
+    });
   }
 
   public start(port: number) {
@@ -50,7 +75,7 @@ class Server {
   }
 
   private setPlugins() {
-    console.log('plugins setting');
+    this.app.register(plugins.authPlugin);
   }
 
   private setRoutes() {

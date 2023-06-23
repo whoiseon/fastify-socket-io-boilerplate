@@ -1,7 +1,7 @@
 import { User } from '@prisma/client';
 
 export interface SignUpParams {
-  name: string;
+  nickname: string;
   username: string;
   password: string;
 }
@@ -13,10 +13,8 @@ export interface SignInParams {
 
 export interface UserResult {
   id: number;
-  name: string;
+  nickname: string;
   username: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface AuthResult {

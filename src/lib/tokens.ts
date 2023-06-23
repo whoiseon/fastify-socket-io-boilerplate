@@ -42,7 +42,7 @@ export interface AccessTokenPayload {
   userId: number;
   tokenId: number;
   username: string;
-  name: string;
+  nickname: string;
 }
 
 export interface RefreshTokenPayload {
