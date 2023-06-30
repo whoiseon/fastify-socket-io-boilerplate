@@ -5,14 +5,12 @@ export function setTokenCookie(
   tokens: { accessToken: string; refreshToken: string },
 ) {
   reply.setCookie('access_token', tokens.accessToken, {
-    httpOnly: false,
-    path: '/',
     expires: new Date(Date.now() + 1000 * 60 * 60),
+    path: '/',
   });
   reply.setCookie('refresh_token', tokens.refreshToken, {
-    httpOnly: false,
-    path: '/',
     expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+    path: '/',
   });
 }
 

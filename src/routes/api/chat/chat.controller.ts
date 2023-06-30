@@ -12,11 +12,11 @@ export default class ChatController {
     fastify.register(plugins.requireAuthPlugin);
 
     fastify.post('/private/message', async (request: AppRequest) => {
+      const body = JSON.parse(request.body as string);
       const { id: userId } = request.user!;
-      const { roomCode, content } = request.body as {
-        roomCode: string;
-        content: string;
-      };
+      const { roomCode, content } = body;
+
+      console.log('message', userId, roomCode, content);
 
       return this.chatService.createSendMessage({
         userId,

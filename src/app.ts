@@ -29,7 +29,8 @@ class Server {
 
     // cors 설정
     this.app.register(fastifyCors, {
-      origin: '*',
+      origin: true,
+      allowedHeaders: ['Cookie', 'Content-Type'],
       credentials: true,
     });
 

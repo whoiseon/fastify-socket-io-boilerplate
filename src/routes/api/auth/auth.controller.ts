@@ -8,7 +8,6 @@ import {
   UserResult,
 } from './auth.types';
 import { setTokenCookie } from '../../../lib/cookies';
-import { AppRequest } from '../../../lib/types';
 
 export default class AuthController {
   private authService = new AuthService();
@@ -16,30 +15,28 @@ export default class AuthController {
   constructor() {}
 
   public routes: FastifyPluginAsync = async (fastify) => {
-    fastify.post('/signup', async (request: AppRequest, reply) => {
-      const authResult = await this.authService.signup(
-        request.body as SignUpParams,
-      );
+    fastify.post<{ Body: SignUpParams }>('/signup', async (request, reply) => {
+      const authResult = await this.authService.signup(request.body);
       return authResult;
     });
 
-    fastify.post('/signin', async (request: AppRequest, reply) => {
+    fastify.post<{ Body: string }>('/signin', async (request, reply) => {
+      const body = JSON.parse(request.body);
       const authResult: AuthResult = await this.authService.signin(
-        request.body as SignInParams,
+        body as SignInParams,
       );
+      console.log(reply, authResult.tokens);
       setTokenCookie(reply, authResult.tokens);
       return authResult;
     });
 
-    fastify.post('/signout', async (request: AppRequest, reply) => {
+    fastify.post('/signout', async (request, reply) => {
       this.authService.signout(reply);
     });
 
-    fastify.post('/refresh', async (request: AppRequest, reply) => {
+    fastify.post<{ Body: RefreshBody }>('/refresh', async (request, reply) => {
       const refreshToken =
-        (request.body as RefreshBody).refreshToken ??
-        request.cookies.refresh_token ??
-        '';
+        request.body.refreshToken ?? request.cookies.refresh_token ?? '';
       if (!refreshToken) {
         throw new Error('Invalid refresh token');
       }

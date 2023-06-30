@@ -8,3 +8,9 @@ export interface AppRequest extends FastifyRequest {
   };
   isExpiredToken?: boolean;
 }
+
+export interface RequestUser {
+  id: number;
+  nickname: string;
+  username: string;
+}

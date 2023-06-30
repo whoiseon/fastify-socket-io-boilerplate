@@ -15,7 +15,7 @@ class Plugins {
     fastify.decorateRequest('isExpiredToken', false);
     fastify.addHook('preHandler', async (request: AppRequest) => {
       const token =
-        request.cookies.authorization?.split('Bearer ')[1] ??
+        request.headers.authorization?.split('Bearer ')[1] ??
         request.cookies.access_token;
 
       if (request.cookies.refresh_token && !token) {
