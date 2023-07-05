@@ -18,7 +18,7 @@ export default class ChatController {
 
       console.log('message', userId, roomCode, content);
 
-      return this.chatService.createSendMessage({
+      return this.chatService.createSendMessage(fastify, {
         userId,
         roomCode,
         content,

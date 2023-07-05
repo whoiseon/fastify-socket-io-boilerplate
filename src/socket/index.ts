@@ -28,13 +28,16 @@ export default class SocketServer {
         console.log(this.onlineMap);
       });
       socket.on('disconnect', () => {
-        delete this.onlineMap[socket.nsp.name][socket.id];
-        newNamespace.emit(
-          'onlineList',
-          Object.values(this.onlineMap[socket.nsp.name]),
-        );
+        setTimeout(() => {
+          delete this.onlineMap[socket.nsp.name][socket.id];
+          newNamespace.emit(
+            'onlineList',
+            Object.values(this.onlineMap[socket.nsp.name]),
+          );
+        }, 1000);
       });
     });
+
     // this.app.io.on('connect', (socket) => {
     //   console.log('New client connected');
 

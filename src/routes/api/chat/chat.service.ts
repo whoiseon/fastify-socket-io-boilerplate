@@ -1,28 +1,33 @@
+import { FastifyInstance } from 'fastify';
 import AppError from '../../../lib/AppError';
 import db from '../../../lib/database';
 import { generateUUID } from '../../../lib/uuid';
-import {
-  CreateRoomParams,
-  CreateSendMessageParams,
-  RoomDeleteParams,
-} from './chat.types';
+import
+  {
+    CreateRoomParams,
+    CreateSendMessageParams,
+    RoomDeleteParams,
+  } from './chat.types';
 
-export default class ChatService {
-  constructor() {}
+export default class ChatService
+{
+  constructor() { }
 
-  public createSendMessage = async ({
-    userId,
-    roomCode,
-    content,
-  }: CreateSendMessageParams) => {
-    try {
+  public createSendMessage = async (
+    fastify: FastifyInstance,
+    { userId, roomCode, content }: CreateSendMessageParams,
+  ) =>
+  {
+    try
+    {
       const room = await db.room.findUnique({
         where: {
           code: roomCode,
         },
       });
 
-      if (!room) {
+      if (!room)
+      {
         throw new AppError('NotFound');
       }
 
@@ -32,14 +37,25 @@ export default class ChatService {
           roomCode,
           userId,
         },
+        include: {
+          user: {
+            select: {
+              username: true,
+              nickname: true,
+            },
+          },
+        },
       });
+
+      fastify.io.of(`/ws-${roomCode}`).emit('message', newMessage);
 
       return {
         error: '',
         success: true,
         data: newMessage,
       };
-    } catch (e: any) {
+    } catch (e: any)
+    {
       return {
         error: e.message,
         success: false,
@@ -52,8 +68,10 @@ export default class ChatService {
     userId,
     name,
     description,
-  }: CreateRoomParams) => {
-    try {
+  }: CreateRoomParams) =>
+  {
+    try
+    {
       const newRoom = await db.room.create({
         data: {
           manager: {
@@ -73,7 +91,8 @@ export default class ChatService {
         success: true,
         data: newRoom,
       };
-    } catch (e: any) {
+    } catch (e: any)
+    {
       return {
         error: e.message,
         success: false,
@@ -82,19 +101,23 @@ export default class ChatService {
     }
   };
 
-  public deleteRoom = async ({ roomId, userId }: RoomDeleteParams) => {
-    try {
+  public deleteRoom = async ({ roomId, userId }: RoomDeleteParams) =>
+  {
+    try
+    {
       const room = await db.room.findUnique({
         where: {
           id: Number(roomId),
         },
       });
 
-      if (!room) {
+      if (!room)
+      {
         throw new AppError('NotFound');
       }
 
-      if (room.managerId !== userId) {
+      if (room.managerId !== userId)
+      {
         throw new AppError('Forbidden');
       }
 
@@ -108,7 +131,8 @@ export default class ChatService {
         error: '',
         success: true,
       };
-    } catch (e: any) {
+    } catch (e: any)
+    {
       return {
         error: e.message,
         success: false,
@@ -116,8 +140,10 @@ export default class ChatService {
     }
   };
 
-  public getMessages = async (roomCode: string) => {
-    try {
+  public getMessages = async (roomCode: string) =>
+  {
+    try
+    {
       const messages = await db.message.findMany({
         where: {
           roomCode,
@@ -131,6 +157,9 @@ export default class ChatService {
             },
           },
         },
+        orderBy: {
+          timestamp: 'asc',
+        }
       });
 
       return {
@@ -138,7 +167,8 @@ export default class ChatService {
         totalCount: messages.length,
         data: messages,
       };
-    } catch (e: any) {
+    } catch (e: any)
+    {
       return {
         error: e.message,
         totalCount: 0,
@@ -147,8 +177,10 @@ export default class ChatService {
     }
   };
 
-  public getRooms = async () => {
-    try {
+  public getRooms = async () =>
+  {
+    try
+    {
       const rooms = await db.room.findMany();
 
       return {
@@ -156,7 +188,8 @@ export default class ChatService {
         totalCount: rooms.length,
         data: rooms,
       };
-    } catch (e: any) {
+    } catch (e: any)
+    {
       return {
         error: e.message,
         totalCount: 0,
@@ -165,8 +198,10 @@ export default class ChatService {
     }
   };
 
-  public getRoomUnique = async (roomCode: string) => {
-    try {
+  public getRoomUnique = async (roomCode: string) =>
+  {
+    try
+    {
       const room = await db.room.findUnique({
         where: {
           code: roomCode,
@@ -182,7 +217,8 @@ export default class ChatService {
         },
       });
 
-      if (!room) {
+      if (!room)
+      {
         throw new AppError('NotFound');
       }
 
@@ -190,7 +226,8 @@ export default class ChatService {
         error: '',
         data: room,
       };
-    } catch (e: any) {
+    } catch (e: any)
+    {
       return {
         error: e.message,
         data: null,
